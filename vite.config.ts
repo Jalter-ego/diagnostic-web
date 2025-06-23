@@ -31,5 +31,8 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist'
-  }
+  },
+  define: {
+    'import.meta.env.VITE_CLERK_PUBLISHABLE_KEY': JSON.stringify(process.env.VITE_CLERK_PUBLISHABLE_KEY),
+  },
 });
