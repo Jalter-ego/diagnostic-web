@@ -6,7 +6,7 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd());
+  const env = loadEnv(mode, process.cwd(), "VITE_");
   return {
     plugins: [
       react(),
@@ -35,11 +35,9 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
     },
     define: {
+      "import.meta.env.VITE_GEMINI_KEY": JSON.stringify(env.VITE_GEMINI_KEY),
       "import.meta.env.VITE_CLERK_PUBLISHABLE_KEY": JSON.stringify(
         env.VITE_CLERK_PUBLISHABLE_KEY
-      ),
-      "import.meta.env.VITE_GEMINI_KEY": JSON.stringify(
-        env.VITE_GEMINI_KEY
       ),
     },
   };
