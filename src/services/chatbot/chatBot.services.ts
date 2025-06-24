@@ -5,6 +5,7 @@ import  funcionalidades  from './prompts/funcionalidades.txt?raw'
 import  enfermedadesDetalle  from './prompts/enfermedades_detalle.txt?raw'
 
 const key = import.meta.env.VITE_GEMINI_KEY;
+console.log("🔑 Gemini Key:", key); 
 
 const ai = new GoogleGenerativeAI(key);
 const initialHistory = [
