@@ -35,9 +35,11 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
     },
     define: {
-      "import.meta.env.VITE_GEMINI_KEY": JSON.stringify(env.VITE_GEMINI_KEY),
+      "import.meta.env.VITE_GEMINI_KEY": JSON.stringify(
+        env.VITE_GEMINI_KEY || ""
+      ),
       "import.meta.env.VITE_CLERK_PUBLISHABLE_KEY": JSON.stringify(
-        env.VITE_CLERK_PUBLISHABLE_KEY
+        env.VITE_CLERK_PUBLISHABLE_KEY || ""
       ),
     },
   };

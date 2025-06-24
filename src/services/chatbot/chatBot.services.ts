@@ -4,8 +4,7 @@ import  restricciones  from './prompts/restricciones.txt?raw'
 import  funcionalidades  from './prompts/funcionalidades.txt?raw'
 import  enfermedadesDetalle  from './prompts/enfermedades_detalle.txt?raw'
 
-const key = 'AIzaSyAKhJrj3GbBbCuzeKH_oaO8PGUFZGWWEtg';
-console.log("🔑 Gemini Key:", key); 
+const key = import.meta.env.VITE_GEMINI_KEY;
 
 const ai = new GoogleGenerativeAI(key);
 const initialHistory = [

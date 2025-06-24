@@ -7,7 +7,7 @@ import { OrganizationProvider } from './hooks/organizationContex.tsx'
 import './index.css'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-console.log('🔐 VITE_CLERK_PUBLISHABLE_KEY:', PUBLISHABLE_KEY);
+console.log("TODAS LAS VARIABLES:", import.meta.env);
 if (!PUBLISHABLE_KEY) {
   throw new Error('Missing Publishable Key')
 }
