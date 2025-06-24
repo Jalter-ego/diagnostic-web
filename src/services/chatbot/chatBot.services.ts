@@ -4,7 +4,16 @@ import  restricciones  from './prompts/restricciones.txt?raw'
 import  funcionalidades  from './prompts/funcionalidades.txt?raw'
 import  enfermedadesDetalle  from './prompts/enfermedades_detalle.txt?raw'
 
+console.log('Environment Variables:', {
+  VITE_GEMINI_KEY: import.meta.env.VITE_GEMINI_KEY,
+  PUBLIC_GEMINI_KEY: import.meta.env.PUBLIC_GEMINI_KEY
+});
+
 const key = import.meta.env.VITE_GEMINI_KEY;
+
+if (!key) {
+  throw new Error('Missing Gemini API Key. Check your environment configuration.');
+}
 
 const ai = new GoogleGenerativeAI(key);
 const initialHistory = [

@@ -4,9 +4,9 @@ import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig, loadEnv } from "vite";
 import path from "path";
 
-// https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "VITE_");
+  const env = loadEnv(mode, process.cwd(), ['VITE_', 'PUBLIC_']); // Carga ambos prefijos
+  
   return {
     plugins: [
       react(),
@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       "import.meta.env.VITE_GEMINI_KEY": JSON.stringify(
-        env.VITE_GEMINI_KEY || ""
+        env.PUBLIC_GEMINI_KEY || env.VITE_GEMINI_KEY || ""
       ),
       "import.meta.env.VITE_CLERK_PUBLISHABLE_KEY": JSON.stringify(
         env.VITE_CLERK_PUBLISHABLE_KEY || ""

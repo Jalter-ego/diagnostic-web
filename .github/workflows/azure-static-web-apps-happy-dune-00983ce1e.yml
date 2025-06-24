@@ -33,7 +33,7 @@ jobs:
       - name: Build app
         run: npm run build
         env:
-          VITE_GEMINI_KEY: ${{ secrets.VITE_GEMINI_KEY }} 
+          PUBLIC_GEMINI_KEY: ${{ secrets.GEMINI_KEY }} 
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
 
       - name: Deploy to Azure Static Web Apps
