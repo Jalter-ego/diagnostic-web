@@ -9,6 +9,11 @@ Estas son las funcionalidades del sistema:
   - Consultas
   - Pacientes
 - **Appointments**: Gestión de citas y horarios de los médicos.
+  - Medical Appointments: seccion donde se puede reservar una cita , tambien tiene un calendario de citas donde se puede visualizar todas las citas
+  - Schedules:  Seccion donde se puede gestionar los horarios de atencion de un medico, se selecciona los dias de la semana y el rango de horas
+  - Organization Schedules: Seccion donde se puede visualizar mas detallado los horarios de atencion de los medicos
+- **Chat Bot**: Una seccion donde esta un asistente virtual que ayuda en consultas.
+- **IA Model**: Una Seccion y la mas importante donde se puede colocar una imagen y un modelo entrenado para la deteccion de patologias de la piel va a ayudar en la deteccion de enfermedades como el melanoma y psoriasis.
 - **Admin**: Accesible solo si eres administrador.
 
 Todas estas funcionalidades están disponibles desde el menú lateral (sidebar).
