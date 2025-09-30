@@ -8,10 +8,6 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 
-interface Window {
-  webkitSpeechRecognition: any;
-}
-
 type SpeechRecognition = any;
 
 type Message = {
@@ -30,11 +26,23 @@ export default function ChatBot() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // 🔊 Función para que el bot hable
-  const speak = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "es-ES"; // Español
-    speechSynthesis.speak(utterance);
-  };
+const speak = (text: string) => {
+  let cleanedText = text
+    .replace(/\*{1,2}/g, "") // Elimina asteriscos de negrita/cursiva (*) o (**)
+    .replace(/_{1,2}/g, "") // Elimina guiones bajos de cursiva (_) o (__)
+    .replace(/^- /gm, "") // Elimina guiones de lista al inicio de línea
+    .replace(/\[.*\]\(.*\)/g, "") // Elimina enlaces tipo [texto](url)
+    .replace(/`/g, "") // Elimina backticks de código
+    .replace(/#/g, "") // Elimina hashes de encabezados
+    .trim(); // Limpia espacios extra al inicio/final
+
+  // 2. Ajustar la velocidad y usar el texto limpio
+  const utterance = new SpeechSynthesisUtterance(cleanedText);
+  utterance.rate = 0.9; // Velocidad ajustada para un habla natural
+  utterance.lang = "es-ES"; // Español
+  
+  speechSynthesis.speak(utterance);
+};
 
   // 🎤 Función para activar el micrófono
   // Referencia al formulario para enviar automáticamente
@@ -125,7 +133,6 @@ export default function ChatBot() {
       setIsAnamnesisActive(true);
       setMessages((prev) => [...prev, { role: "bot", content: response }]);
 
-      // 🔊 Bot inicia anamnesis hablando
       speak(response);
     } catch (error) {
       console.error("Error al iniciar la anamnesis:", error);
@@ -158,14 +165,13 @@ export default function ChatBot() {
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`p-3 rounded-lg ${
-              msg.role === "user" ? "bg-secondary ml-auto" : ""
-            } max-w-[80%]`}
+            className={`p-3 rounded-lg ${msg.role === "user" ? "bg-secondary ml-auto" : ""
+              } max-w-[80%]`}
           >
             <strong>{msg.role === "user" ? "Tú: " : "Asistente: "}</strong>
             {msg.role === "bot" &&
-            messages.length - 1 === idx &&
-            isLoading ? (
+              messages.length - 1 === idx &&
+              isLoading ? (
               <span className="animate-pulse">
                 Asistente está escribiendo...
               </span>
@@ -196,7 +202,7 @@ export default function ChatBot() {
         </Button>
       </div>
 
-  <form ref={formRef} onSubmit={handleSubmit} className="mt-2 flex px-2">
+      <form ref={formRef} onSubmit={handleSubmit} className="mt-2 flex px-2">
         <input
           type="text"
           placeholder="Pregunta sobre el software o dermatología..."
