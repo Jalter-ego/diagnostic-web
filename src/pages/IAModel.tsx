@@ -1,7 +1,11 @@
 import { useState, useRef } from "react";
+import { fetchCreateTreatment } from "@/services/treatments.services";
+import { fetchCreateDiagnoses } from "@/services/diagnoses.services";
+import { useOrganization } from "@/hooks/organizationContex";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fetchModel } from "@/services/model";
+import { fetchModelBenignMalignant } from "@/services/model";
 import { getDiseaseDetails } from "@/services/chatbot/chatBot.services";
 import { toast } from "sonner";
 import {
@@ -107,6 +111,11 @@ const MELANOMA_DETAILS_TEXT = `De acuerdo, aquí tienes información detallada s
 `;
 
 export default function IAModel() {
+  // Simulación para benigno/maligno en prueba manual
+  const simulateBenignMalignant = () => ({ class: "benigno", confidence: 0.87 });
+  const [benignMalignantResult, setBenignMalignantResult] = useState<{ class: string; confidence: number } | null>(null);
+  const [showBenignMalignantModal, setShowBenignMalignantModal] = useState(false);
+  const { organization } = useOrganization();
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [modelResult, setModelResult] = useState<ModelResult | null>(null);
@@ -313,6 +322,9 @@ export default function IAModel() {
       // Obtenemos detalles detallados de la enfermedad usando el chatbot
       await fetchDiseaseDetails(testResult.class, true);
 
+      // Simular resultado benigno/maligno si es melanoma
+      setBenignMalignantResult(simulateBenignMalignant());
+
       toast.success("Prueba completada");
     } catch (error: any) {
       if (error.name === "AbortError") {
@@ -325,6 +337,32 @@ export default function IAModel() {
       setLoading(false);
       abortControllerRef.current = null;
     }
+  };
+
+  // 🔊 Función para leer los detalles por voz
+  // Estado para saber si está hablando
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Función para alternar voz
+  const toggleSpeak = (text: string) => {
+    const synth = window.speechSynthesis;
+    if (isSpeaking) {
+      synth.cancel();
+      setIsSpeaking(false);
+    } else {
+      const utterance = new window.SpeechSynthesisUtterance(text);
+      utterance.lang = "es-ES";
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      synth.speak(utterance);
+      setIsSpeaking(true);
+    }
+  };
+
+  // Construir el texto completo de los detalles
+  const getFullDetailsText = () => {
+    if (!diseaseDetails) return "";
+    return `Síntomas: ${diseaseDetails.symptoms}\nCausas frecuentes: ${diseaseDetails.causes}\nDiagnóstico: ${diseaseDetails.diagnosis}\nTratamiento recomendado: ${diseaseDetails.treatment}\nDetalles importantes: ${diseaseDetails.importantDetails}\nRecomendaciones: ${diseaseDetails.recommendations}`;
   };
 
   return (
@@ -413,7 +451,29 @@ export default function IAModel() {
             <h2 className="text-xl font-semibold">Resultados del Análisis</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <p className="font-medium">Enfermedad Detectada:</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">Enfermedad Detectada:</p>
+                  {modelResult?.class === "melanoma" && image && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-2"
+                      onClick={async () => {
+                        try {
+                          const formData = new FormData();
+                          formData.append("image", image);
+                          const result = await fetchModelBenignMalignant(formData);
+                          setBenignMalignantResult(result);
+                          setShowBenignMalignantModal(true);
+                        } catch (error) {
+                          toast.error("Error al predecir benigno/maligno");
+                        }
+                      }}
+                    >
+                      Ver benigno/maligno
+                    </Button>
+                  )}
+                </div>
                 <p className="text-lg capitalize">{modelResult.class}</p>
                 <p className="font-medium">Nivel de Confianza:</p>
                 <p className="text-lg">{(modelResult.confidence * 100).toFixed(2)}%</p>
@@ -450,6 +510,15 @@ export default function IAModel() {
             {diseaseDetails && (
               <div className="mt-6 space-y-8">
                 <h3 className="text-2xl font-bold border-b pb-2 mb-4 text-center">Información Detallada de la Enfermedad</h3>
+                <div className="flex justify-center mb-4">
+                  <Button
+                    onClick={() => toggleSpeak(getFullDetailsText())}
+                    variant="outline"
+                    className="text-sm"
+                  >
+                    {isSpeaking ? "🔇 Detener voz" : "🔊 Escuchar detalles"}
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Síntomas */}
                   <div className="space-y-2">
@@ -484,6 +553,33 @@ export default function IAModel() {
                     <div className="flex items-center gap-2">
                       <span className="text-blue-500"><IconHospital /></span>
                       <h4 className="text-lg font-semibold">Diagnóstico</h4>
+                       <Button
+                    variant="outline"
+                    size="sm"
+                    className="ml-2"
+                    onClick={async () => {
+                      if (!organization) {
+                        toast.error("No hay organización seleccionada");
+                        return;
+                      }
+                      if (!modelResult?.class) {
+                        toast.error("No hay diagnóstico detectado");
+                        return;
+                      }
+                      try {
+                        await fetchCreateDiagnoses({
+                          name: modelResult.class,
+                          description: diseaseDetails?.diagnosis || "Diagnóstico automático IA",
+                          organizationId: organization.id
+                        });
+                        toast.success("Diagnóstico creado correctamente");
+                      } catch (error) {
+                        toast.error("Error al crear diagnóstico");
+                      }
+                    }}
+                  >
+                    Crear diagnóstico
+                  </Button>
                     </div>
                     <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
                       <ul className="list-disc pl-5 text-sm">
@@ -498,6 +594,37 @@ export default function IAModel() {
                     <div className="flex items-center gap-2">
                       <span className="text-green-500"><IconIA /></span>
                       <h4 className="text-lg font-semibold">Tratamiento Recomendado</h4>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="ml-2"
+                        onClick={async () => {
+                          if (!organization) {
+                            toast.error("No hay organización seleccionada");
+                            return;
+                          }
+                          const treatmentText = diseaseDetails?.treatment?.trim();
+                          if (!treatmentText) {
+                            toast.error("No hay tratamiento detectado");
+                            return;
+                          }
+                          try {
+                            await fetchCreateTreatment({
+                              description: treatmentText,
+                              duration: "4 semanas",
+                              instructions: "Tratamiento automático IA",
+                              organizationId: organization.id,
+                              frequencyValue: 1,
+                              frequencyUnit: "daily"
+                            });
+                            toast.success("Tratamiento creado correctamente");
+                          } catch (error) {
+                            toast.error("Error al crear tratamiento");
+                          }
+                        }}
+                      >
+                        Crear tratamiento
+                      </Button>
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg shadow-sm">
                       <ul className="list-disc pl-5 text-sm">
@@ -545,6 +672,17 @@ export default function IAModel() {
 
           </div>
         </Card>
+      )}
+      {/* Modal para mostrar resultado benigno/maligno */}
+      {showBenignMalignantModal && benignMalignantResult && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-8 min-w-[300px] text-center">
+            <h3 className="text-xl font-bold mb-4">Resultado Melanoma</h3>
+            <p className="text-lg mb-2">Clasificación: <span className="font-semibold">{benignMalignantResult.class}</span></p>
+            <p className="mb-4">Confianza: <span className="font-semibold">{(benignMalignantResult.confidence * 100).toFixed(2)}%</span></p>
+            <Button onClick={() => setShowBenignMalignantModal(false)} variant="outline">Cerrar</Button>
+          </div>
+        </div>
       )}
     </div>
   );
