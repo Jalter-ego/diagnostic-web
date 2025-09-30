@@ -453,7 +453,7 @@ export default function IAModel() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <p className="font-medium">Enfermedad Detectada:</p>
-                  {modelResult?.class === "melanoma" && image && (
+                  {modelResult?.class === "Melanoma" && image && (
                     <Button
                       variant="outline"
                       size="sm"
